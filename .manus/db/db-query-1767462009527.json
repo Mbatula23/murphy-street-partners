@@ -1,0 +1,28 @@
+{
+  "query": "SHOW TABLES;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2ZuSPpW8NoPyuNj.root --database VhHGPvgsvoLHTKTLTXFkJq --execute SHOW TABLES;",
+  "rows": [
+    {
+      "Tables_in_VhHGPvgsvoLHTKTLTXFkJq": "__drizzle_migrations"
+    },
+    {
+      "Tables_in_VhHGPvgsvoLHTKTLTXFkJq": "activities"
+    },
+    {
+      "Tables_in_VhHGPvgsvoLHTKTLTXFkJq": "contacts"
+    },
+    {
+      "Tables_in_VhHGPvgsvoLHTKTLTXFkJq": "deals"
+    },
+    {
+      "Tables_in_VhHGPvgsvoLHTKTLTXFkJq": "intelligence"
+    },
+    {
+      "Tables_in_VhHGPvgsvoLHTKTLTXFkJq": "users"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_VhHGPvgsvoLHTKTLTXFkJq\n__drizzle_migrations\nactivities\ncontacts\ndeals\nintelligence\nusers\n",
+  "stderr": "",
+  "execution_time_ms": 226
+}

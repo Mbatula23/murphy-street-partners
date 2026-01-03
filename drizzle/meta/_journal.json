@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1767461892469,
+      "tag": "0000_whole_revanche",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1767461980226,
+      "tag": "0001_melted_kulan_gath",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1767461998180,
+      "tag": "0002_even_scorpion",
+      "breakpoints": true
+    }
+  ]
+}
