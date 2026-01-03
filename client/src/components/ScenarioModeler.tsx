@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
-import { Plus, TrendingUp, Calculator } from "lucide-react";
+import { Plus, TrendingUp, Calculator, Download } from "lucide-react";
+import { exportDealWithScenarios, exportScenarioComparison } from "@/lib/pdfExport";
 import { toast } from "sonner";
 
 interface Deal {
@@ -392,14 +393,27 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
             </CardContent>
           </Card>
 
-          <Button
-            onClick={handleSaveScenario}
-            disabled={createScenario.isPending}
-            className="w-full"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Save Scenario
-          </Button>
+          <div className="space-y-2">
+            <Button
+              onClick={handleSaveScenario}
+              disabled={createScenario.isPending}
+              className="w-full"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Save Scenario
+            </Button>
+            
+            {scenarios && scenarios.length > 0 && (
+              <Button
+                onClick={() => exportScenarioComparison(deal.name, scenarios)}
+                variant="outline"
+                className="w-full"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export Scenarios PDF
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Saved Scenarios */}
@@ -412,36 +426,104 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
               {isLoading ? (
                 <p className="text-muted-foreground text-center py-8">Loading scenarios...</p>
               ) : scenarios && scenarios.length > 0 ? (
-                <div className="space-y-3">
-                  {scenarios.map((scenario) => (
-                    <Card key={scenario.id} className="bg-muted/30">
-                      <CardContent className="p-4">
-                        <h4 className="font-semibold mb-2">{scenario.name}</h4>
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">IRR:</span>
-                            <span className="ml-2 font-semibold text-green-600 dark:text-green-400">
+                <div className="space-y-6">
+                  {/* Comparison Table */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-2 px-3 font-semibold">Metric</th>
+                          {scenarios.map((scenario) => (
+                            <th key={scenario.id} className="text-right py-2 px-3 font-semibold">
+                              {scenario.name}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-muted-foreground">IRR</td>
+                          {scenarios.map((scenario) => (
+                            <td key={scenario.id} className="text-right py-2 px-3 font-semibold text-green-600 dark:text-green-400">
                               {scenario.irr}%
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">MOIC:</span>
-                            <span className="ml-2 font-semibold text-blue-600 dark:text-blue-400">
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-muted-foreground">MOIC</td>
+                          {scenarios.map((scenario) => (
+                            <td key={scenario.id} className="text-right py-2 px-3 font-semibold text-blue-600 dark:text-blue-400">
                               {scenario.moic}x
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Stake:</span>
-                            <span className="ml-2 font-medium">{scenario.stakePercentage}%</span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Exit:</span>
-                            <span className="ml-2 font-medium">{scenario.exitYear}Y</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-muted-foreground">Entry Valuation</td>
+                          {scenarios.map((scenario) => (
+                            <td key={scenario.id} className="text-right py-2 px-3 font-medium">
+                              €{scenario.entryValuation}M
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-muted-foreground">Stake %</td>
+                          {scenarios.map((scenario) => (
+                            <td key={scenario.id} className="text-right py-2 px-3 font-medium">
+                              {scenario.stakePercentage}%
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-muted-foreground">Investment</td>
+                          {scenarios.map((scenario) => (
+                            <td key={scenario.id} className="text-right py-2 px-3 font-medium">
+                              €{scenario.investmentAmount}M
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-muted-foreground">Revenue Growth</td>
+                          {scenarios.map((scenario) => (
+                            <td key={scenario.id} className="text-right py-2 px-3 font-medium">
+                              {scenario.revenueGrowthRate}%
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-muted-foreground">Margin Improvement</td>
+                          {scenarios.map((scenario) => (
+                            <td key={scenario.id} className="text-right py-2 px-3 font-medium">
+                              {scenario.ebitdaMarginImprovement}pp
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-muted-foreground">Exit Year</td>
+                          {scenarios.map((scenario) => (
+                            <td key={scenario.id} className="text-right py-2 px-3 font-medium">
+                              {scenario.exitYear}Y
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-muted-foreground">Exit Multiple</td>
+                          {scenarios.map((scenario) => (
+                            <td key={scenario.id} className="text-right py-2 px-3 font-medium">
+                              {scenario.exitMultiple}x
+                            </td>
+                          ))}
+                        </tr>
+                        <tr>
+                          <td className="py-2 px-3 text-muted-foreground">Exit Valuation</td>
+                          {scenarios.map((scenario) => (
+                            <td key={scenario.id} className="text-right py-2 px-3 font-semibold text-purple-600 dark:text-purple-400">
+                              €{scenario.exitValuation}M
+                            </td>
+                          ))}
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               ) : (
                 <div className="text-center py-8">

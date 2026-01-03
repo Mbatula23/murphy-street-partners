@@ -52,12 +52,20 @@ export default function Dashboard() {
               <h1 className="text-3xl font-bold text-foreground mb-1">Deal Pipeline</h1>
               <p className="text-muted-foreground">Strategic minority investments across European sports</p>
             </div>
-            <Link href="/deals/new">
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                <Plus className="w-4 h-4 mr-2" />
-                New Deal
-              </Button>
-            </Link>
+            <div className="flex gap-2">
+              <Link href="/comparison">
+                <Button variant="outline">
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Compare Deals
+                </Button>
+              </Link>
+              <Link href="/deals/new">
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Deal
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

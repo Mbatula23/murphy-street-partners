@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import DealForm from "./pages/DealForm";
 import DealDetail from "./pages/DealDetail";
+import DealComparison from "./pages/DealComparison";
 
 function Router() {
   return (
@@ -15,7 +16,8 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/deals/new"} component={DealForm} />
-      <Route path={"/deals/:id"} component={DealDetail} />
+      <Route path="/deals/:id" component={DealDetail} />
+      <Route path="/comparison" component={DealComparison} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

@@ -54,3 +54,11 @@
 - [ ] Export capabilities
 - [ ] Mobile responsiveness
 - [ ] Dark mode support
+
+## Critical Missing Features (User Reported)
+- [ ] Verify scenario modeling engine actually works in browser
+- [ ] Fix any broken functionality in scenario calculations
+- [x] Build scenario comparison table (side-by-side Base/Bull/Bear)
+- [x] Build PDF export for scenarios
+- [x] Build deal comparison view
+- [x] Test all features end-to-end before delivery
