@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,46 +60,40 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
     exitMultiple: 0,
   });
 
-  const [results, setResults] = useState<ScenarioResults | null>(null);
-
-  // Calculate investment amount based on valuation and stake
-  useEffect(() => {
-    const amount = (inputs.entryValuation * inputs.stakePercentage) / 100;
-    setInputs(prev => ({ ...prev, investmentAmount: amount }));
+  // Calculate derived values using useMemo to avoid circular dependencies
+  const investmentAmount = useMemo(() => {
+    return (inputs.entryValuation * inputs.stakePercentage) / 100;
   }, [inputs.entryValuation, inputs.stakePercentage]);
 
-  // Calculate exit multiple based on entry valuation and EBITDA
-  useEffect(() => {
+  const exitMultiple = useMemo(() => {
     if (deal.ebitda) {
-      const entryMultiple = inputs.entryValuation / parseFloat(deal.ebitda);
-      setInputs(prev => ({ ...prev, exitMultiple: entryMultiple }));
+      return inputs.entryValuation / parseFloat(deal.ebitda);
     }
-  }, [inputs.entryValuation, deal.ebitda]);
+    return inputs.exitMultiple;
+  }, [inputs.entryValuation, deal.ebitda, inputs.exitMultiple]);
 
-  // Real-time scenario calculations
-  useEffect(() => {
-    calculateScenario();
-  }, [inputs]);
-
-  const calculateScenario = () => {
+  // Calculate scenario results
+  const results = useMemo<ScenarioResults>(() => {
+    console.log('📊 Calculating scenario with inputs:', inputs);
     // Base financials
     const currentRevenue = deal.revenue ? parseFloat(deal.revenue) : 0;
     const currentEBITDA = deal.ebitda ? parseFloat(deal.ebitda) : 0;
     const currentMargin = currentRevenue > 0 ? (currentEBITDA / currentRevenue) * 100 : 0;
-
+    
     // Project future financials
     const futureRevenue = currentRevenue * Math.pow(1 + inputs.revenueGrowthRate / 100, inputs.exitYear);
     const futureMargin = currentMargin + inputs.ebitdaMarginImprovement;
     const futureEBITDA = (futureRevenue * futureMargin) / 100;
-
+    
     // Exit valuation
-    const exitValuation = futureEBITDA * inputs.exitMultiple;
-    const exitEquityValue = exitValuation; // Simplified: not accounting for debt paydown
-
-    // Returns calculation
-    const equityInvested = inputs.investmentAmount * (1 - inputs.debtPercentage / 100);
-    const exitProceeds = (exitEquityValue * inputs.stakePercentage) / 100;
-    const totalReturn = exitProceeds - equityInvested;
+    const exitVal = futureEBITDA * exitMultiple;
+    const currentDebt = deal.debt ? parseFloat(deal.debt) : 0;
+    const exitEquityVal = exitVal - currentDebt;
+    
+    // Investment calculations
+    const equityInvested = investmentAmount * (1 - inputs.debtPercentage / 100);
+    const exitProceeds = (exitEquityVal * inputs.stakePercentage) / 100;
+    const totalRet = exitProceeds - equityInvested;
     
     // MOIC
     const moic = equityInvested > 0 ? exitProceeds / equityInvested : 0;
@@ -110,17 +104,19 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
       : 0;
 
     // Cash-on-cash
-    const cashOnCash = inputs.investmentAmount > 0 ? (totalReturn / inputs.investmentAmount) * 100 : 0;
+    const cashOnCash = investmentAmount > 0 ? (totalRet / investmentAmount) * 100 : 0;
 
-    setResults({
-      exitValuation,
-      exitEquityValue,
-      totalReturn,
+    const calculatedResults = {
+      exitValuation: exitVal,
+      exitEquityValue: exitEquityVal,
+      totalReturn: totalRet,
       irr,
       moic,
       cashOnCash,
-    });
-  };
+    };
+    console.log('✅ Results calculated:', calculatedResults);
+    return calculatedResults;
+  }, [inputs, deal, investmentAmount, exitMultiple]);
 
   const createScenario = trpc.scenarios.create.useMutation({
     onSuccess: () => {
@@ -155,6 +151,7 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
   };
 
   const updateInput = (field: keyof ScenarioInputs, value: number) => {
+    console.log(`✏️ updateInput called: ${field} = ${value}`);
     setInputs(prev => ({ ...prev, [field]: value }));
   };
 

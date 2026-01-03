@@ -62,3 +62,7 @@
 - [x] Build PDF export for scenarios
 - [x] Build deal comparison view
 - [x] Test all features end-to-end before delivery
+
+## User-Reported Issues
+- [x] Fix scenario modeling - financial metrics not updating dynamically when sliders are adjusted
+- [x] Verify IRR, MOIC, Exit Value, and Total Return calculations update in real-time
