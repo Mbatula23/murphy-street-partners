@@ -66,3 +66,9 @@
 ## User-Reported Issues
 - [x] Fix scenario modeling - financial metrics not updating dynamically when sliders are adjusted
 - [x] Verify IRR, MOIC, Exit Value, and Total Return calculations update in real-time
+
+## Critical Fixes Required
+- [ ] Fix slider interactions - calculations must update in real-time when sliders move
+- [ ] Fix scenario saving - save button must save to database and show success message
+- [x] Fix investment amount display - showing €0.0M instead of calculated value
+- [ ] Test end-to-end: create scenario, adjust sliders, save, verify saved scenarios appear
