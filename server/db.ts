@@ -18,6 +18,38 @@ import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
+type MemoryDeal = InsertDeal & { id: number; createdAt?: Date; updatedAt?: Date };
+type MemoryScenario = InsertScenario & { id: number; createdAt?: Date; updatedAt?: Date };
+
+const memoryDb = {
+  deals: [] as MemoryDeal[],
+  scenarios: [] as MemoryScenario[],
+};
+
+function applyDealDefaults(deal: InsertDeal, id: number): MemoryDeal {
+  const timestamp = new Date();
+  return {
+    id,
+    status: "monitoring",
+    conviction: "medium",
+    priority: 3,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    ...deal,
+  };
+}
+
+function applyScenarioDefaults(scenario: InsertScenario, id: number): MemoryScenario {
+  const timestamp = new Date();
+  return {
+    id,
+    exitYear: 5,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    ...scenario,
+  };
+}
+
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
@@ -106,16 +138,29 @@ export async function getUserByOpenId(openId: string) {
 
 export async function createDeal(deal: InsertDeal) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
+  if (!db) {
+    const newDeal = applyDealDefaults(deal, memoryDb.deals.length + 1);
+    memoryDb.deals.push(newDeal);
+    return newDeal;
+  }
+
   const result = await db.insert(deals).values(deal);
-  return result;
+  const insertId = (result as { insertId?: number }).insertId;
+  if (insertId) {
+    const [inserted] = await db.select().from(deals).where(eq(deals.id, insertId)).limit(1);
+    if (inserted) return inserted;
+  }
+  return applyDealDefaults(deal, insertId ?? memoryDb.deals.length + 1);
 }
 
 export async function getUserDeals(userId: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
+  if (!db) {
+    return memoryDb.deals
+      .filter(deal => deal.userId === userId)
+      .sort((a, b) => (b.updatedAt?.getTime() ?? 0) - (a.updatedAt?.getTime() ?? 0));
+  }
+
   return await db
     .select()
     .from(deals)
@@ -125,25 +170,41 @@ export async function getUserDeals(userId: number) {
 
 export async function getDealById(dealId: number, userId: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
+  if (!db) {
+    const deal = memoryDb.deals.find(d => d.id === dealId && d.userId === userId);
+    return deal ?? null;
+  }
+
   const result = await db
     .select()
     .from(deals)
     .where(and(eq(deals.id, dealId), eq(deals.userId, userId)))
     .limit(1);
-  
+
   return result.length > 0 ? result[0] : null;
 }
 
 export async function updateDeal(dealId: number, userId: number, updates: Partial<InsertDeal>) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  return await db
+  if (!db) {
+    const dealIndex = memoryDb.deals.findIndex(d => d.id === dealId && d.userId === userId);
+    if (dealIndex === -1) throw new Error("Deal not found");
+
+    const updatedDeal = {
+      ...memoryDb.deals[dealIndex],
+      ...updates,
+      updatedAt: new Date(),
+    };
+    memoryDb.deals[dealIndex] = updatedDeal;
+    return updatedDeal;
+  }
+
+  await db
     .update(deals)
     .set(updates)
     .where(and(eq(deals.id, dealId), eq(deals.userId, userId)));
+
+  return await getDealById(dealId, userId);
 }
 
 export async function deleteDeal(dealId: number, userId: number) {
@@ -243,15 +304,29 @@ export async function getDealActivities(dealId: number, userId: number) {
 
 export async function createScenario(scenario: InsertScenario) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  return await db.insert(scenarios).values(scenario);
+  if (!db) {
+    const newScenario = applyScenarioDefaults(scenario, memoryDb.scenarios.length + 1);
+    memoryDb.scenarios.push(newScenario);
+    return newScenario;
+  }
+
+  const result = await db.insert(scenarios).values(scenario);
+  const insertId = (result as { insertId?: number }).insertId;
+  if (insertId) {
+    const [inserted] = await db.select().from(scenarios).where(eq(scenarios.id, insertId)).limit(1);
+    if (inserted) return inserted;
+  }
+  return applyScenarioDefaults(scenario, insertId ?? memoryDb.scenarios.length + 1);
 }
 
 export async function getDealScenarios(dealId: number, userId: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
+  if (!db) {
+    return memoryDb.scenarios
+      .filter(s => s.dealId === dealId && s.userId === userId)
+      .sort((a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0));
+  }
+
   return await db
     .select()
     .from(scenarios)
@@ -261,12 +336,31 @@ export async function getDealScenarios(dealId: number, userId: number) {
 
 export async function updateScenario(scenarioId: number, userId: number, updates: Partial<InsertScenario>) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  return await db
+  if (!db) {
+    const scenarioIndex = memoryDb.scenarios.findIndex(s => s.id === scenarioId && s.userId === userId);
+    if (scenarioIndex === -1) throw new Error("Scenario not found");
+
+    const updatedScenario = {
+      ...memoryDb.scenarios[scenarioIndex],
+      ...updates,
+      updatedAt: new Date(),
+    };
+    memoryDb.scenarios[scenarioIndex] = updatedScenario;
+    return updatedScenario;
+  }
+
+  await db
     .update(scenarios)
     .set(updates)
     .where(and(eq(scenarios.id, scenarioId), eq(scenarios.userId, userId)));
+
+  const [updated] = await db
+    .select()
+    .from(scenarios)
+    .where(and(eq(scenarios.id, scenarioId), eq(scenarios.userId, userId)))
+    .limit(1);
+
+  return updated ?? null;
 }
 
 export async function deleteScenario(scenarioId: number, userId: number) {
