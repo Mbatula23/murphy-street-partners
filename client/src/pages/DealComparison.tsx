@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +6,21 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useLocation } from "wouter";
 import { ArrowLeft, TrendingUp } from "lucide-react";
+
+export const isDealToggleKey = (key: string) => key === "Enter" || key === " ";
+
+export const handleDealKeyboardToggle = (
+  event: Pick<React.KeyboardEvent, "key" | "preventDefault">,
+  onToggle: () => void,
+) => {
+  if (isDealToggleKey(event.key)) {
+    event.preventDefault();
+    onToggle();
+    return true;
+  }
+
+  return false;
+};
 
 export default function DealComparison() {
   const [, setLocation] = useLocation();
@@ -53,6 +68,13 @@ export default function DealComparison() {
     ).join(" ");
   };
 
+  const handleDealKeyDown = (
+    event: React.KeyboardEvent<HTMLButtonElement>,
+    dealId: number
+  ) => {
+    handleDealKeyboardToggle(event, () => toggleDeal(dealId));
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container py-8">
@@ -92,14 +114,18 @@ export default function DealComparison() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {deals.map((deal) => (
-                    <div
+                    <button
+                      type="button"
+                      role="checkbox"
+                      aria-checked={selectedDeals.includes(deal.id)}
                       key={deal.id}
-                      className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                      className={`p-4 border rounded-lg text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
                         selectedDeals.includes(deal.id)
                           ? 'border-primary bg-primary/5'
                           : 'border-border hover:border-primary/50'
                       }`}
                       onClick={() => toggleDeal(deal.id)}
+                      onKeyDown={(event) => handleDealKeyDown(event, deal.id)}
                     >
                       <div className="flex items-start gap-3">
                         <Checkbox
@@ -123,7 +149,7 @@ export default function DealComparison() {
                           </p>
                         </div>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </CardContent>
