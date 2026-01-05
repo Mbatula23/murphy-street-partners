@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +47,26 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
   const utils = trpc.useUtils();
   const { data: scenarios, isLoading } = trpc.scenarios.byDeal.useQuery({ dealId });
 
+  const currentRevenue = useMemo(
+    () => (deal.revenue ? parseFloat(deal.revenue) : 0),
+    [deal.revenue]
+  );
+
+  const currentEBITDA = useMemo(
+    () => (deal.ebitda ? parseFloat(deal.ebitda) : 0),
+    [deal.ebitda]
+  );
+
+  const currentMargin = useMemo(
+    () => (currentRevenue > 0 ? (currentEBITDA / currentRevenue) * 100 : 0),
+    [currentRevenue, currentEBITDA]
+  );
+
+  const currentDebt = useMemo(
+    () => (deal.debt ? parseFloat(deal.debt) : 0),
+    [deal.debt]
+  );
+
   const [inputs, setInputs] = useState<ScenarioInputs>({
     name: "Base Case",
     entryValuation: deal.currentValuation ? parseFloat(deal.currentValuation) : 500,
@@ -63,34 +83,28 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
     return (inputs.entryValuation * inputs.stakePercentage) / 100;
   }, [inputs.entryValuation, inputs.stakePercentage]);
 
-  const baselineEBITDA = useMemo(() => {
-    return deal.ebitda ? parseFloat(deal.ebitda) : 0;
-  }, [deal.ebitda]);
+  const equityInvested = useMemo(() => {
+    return investmentAmount * (1 - inputs.debtPercentage / 100);
+  }, [investmentAmount, inputs.debtPercentage]);
 
   const entryMultiple = useMemo(() => {
-    return baselineEBITDA > 0 ? inputs.entryValuation / baselineEBITDA : 0;
-  }, [baselineEBITDA, inputs.entryValuation]);
+    return currentEBITDA > 0 ? inputs.entryValuation / currentEBITDA : 0;
+  }, [currentEBITDA, inputs.entryValuation]);
 
   // Calculate scenario results
   const results = useMemo<ScenarioResults>(() => {
     console.log('📊 Calculating scenario with inputs:', inputs);
     // Base financials
-    const currentRevenue = deal.revenue ? parseFloat(deal.revenue) : 0;
-    const currentEBITDA = deal.ebitda ? parseFloat(deal.ebitda) : 0;
-    const currentMargin = currentRevenue > 0 ? (currentEBITDA / currentRevenue) * 100 : 0;
-    
     // Project future financials
     const futureRevenue = currentRevenue * Math.pow(1 + inputs.revenueGrowthRate / 100, inputs.exitYear);
     const futureMargin = currentMargin + inputs.ebitdaMarginImprovement;
     const futureEBITDA = (futureRevenue * futureMargin) / 100;
-    
+
     // Exit valuation
     const exitVal = futureEBITDA * inputs.exitMultiple;
-    const currentDebt = deal.debt ? parseFloat(deal.debt) : 0;
     const exitEquityVal = exitVal - currentDebt;
-    
+
     // Investment calculations
-    const equityInvested = investmentAmount * (1 - inputs.debtPercentage / 100);
     const exitProceeds = (exitEquityVal * inputs.stakePercentage) / 100;
     const totalRet = exitProceeds - equityInvested;
     
@@ -102,7 +116,7 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
       ? (Math.pow(moic, 1 / inputs.exitYear) - 1) * 100
       : 0;
 
-    // Cash-on-cash (aligned to equity invested)
+    // Cash-on-cash
     const cashOnCash = equityInvested > 0 ? (totalRet / equityInvested) * 100 : 0;
 
     const calculatedResults = {
@@ -115,7 +129,7 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
     };
     console.log('✅ Results calculated:', calculatedResults);
     return calculatedResults;
-  }, [inputs, deal, investmentAmount]);
+  }, [currentDebt, currentMargin, currentRevenue, equityInvested, inputs]);
 
   const createScenario = trpc.scenarios.create.useMutation({
     onSuccess: () => {
@@ -463,6 +477,14 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
                           {scenarios.map((scenario) => (
                             <td key={scenario.id} className="text-right py-2 px-3 font-medium">
                               €{scenario.entryValuation}M
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-muted-foreground">Entry Multiple</td>
+                          {scenarios.map((scenario) => (
+                            <td key={scenario.id} className="text-right py-2 px-3 font-medium">
+                              {scenario.entryMultiple ? `${scenario.entryMultiple}x` : "—"}
                             </td>
                           ))}
                         </tr>
