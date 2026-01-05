@@ -63,6 +63,14 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
     return (inputs.entryValuation * inputs.stakePercentage) / 100;
   }, [inputs.entryValuation, inputs.stakePercentage]);
 
+  const baselineEBITDA = useMemo(() => {
+    return deal.ebitda ? parseFloat(deal.ebitda) : 0;
+  }, [deal.ebitda]);
+
+  const entryMultiple = useMemo(() => {
+    return baselineEBITDA > 0 ? inputs.entryValuation / baselineEBITDA : 0;
+  }, [baselineEBITDA, inputs.entryValuation]);
+
   // Calculate scenario results
   const results = useMemo<ScenarioResults>(() => {
     console.log('📊 Calculating scenario with inputs:', inputs);
@@ -94,8 +102,8 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
       ? (Math.pow(moic, 1 / inputs.exitYear) - 1) * 100
       : 0;
 
-    // Cash-on-cash
-    const cashOnCash = investmentAmount > 0 ? (totalRet / investmentAmount) * 100 : 0;
+    // Cash-on-cash (aligned to equity invested)
+    const cashOnCash = equityInvested > 0 ? (totalRet / equityInvested) * 100 : 0;
 
     const calculatedResults = {
       exitValuation: exitVal,
@@ -126,7 +134,7 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
       dealId,
       name: inputs.name,
       entryValuation: inputs.entryValuation.toString(),
-      entryMultiple: inputs.exitMultiple.toFixed(1),
+      entryMultiple: entryMultiple.toFixed(1),
       stakePercentage: inputs.stakePercentage.toString(),
       investmentAmount: investmentAmount.toFixed(1),
       debtPercentage: inputs.debtPercentage.toString(),
@@ -495,6 +503,14 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
                           {scenarios.map((scenario) => (
                             <td key={scenario.id} className="text-right py-2 px-3 font-medium">
                               {scenario.exitYear}Y
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2 px-3 text-muted-foreground">Entry Multiple</td>
+                          {scenarios.map((scenario) => (
+                            <td key={scenario.id} className="text-right py-2 px-3 font-medium">
+                              {scenario.entryMultiple ? `${scenario.entryMultiple}x` : "N/A"}
                             </td>
                           ))}
                         </tr>
