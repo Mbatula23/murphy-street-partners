@@ -75,7 +75,7 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
     revenueGrowthRate: 5,
     ebitdaMarginImprovement: 0,
     exitYear: 5,
-    exitMultiple: 12, // Realistic market multiple for football clubs (8-15x typical range)
+    exitMultiple: 2,
   });
 
   // Calculate derived values using useMemo to avoid circular dependencies
@@ -88,8 +88,8 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
   }, [investmentAmount, inputs.debtPercentage]);
 
   const entryMultiple = useMemo(() => {
-    return currentEBITDA > 0 ? inputs.entryValuation / currentEBITDA : 0;
-  }, [currentEBITDA, inputs.entryValuation]);
+    return currentRevenue > 0 ? inputs.entryValuation / currentRevenue : 0;
+  }, [currentRevenue, inputs.entryValuation]);
 
   // Calculate scenario results
   const results = useMemo<ScenarioResults>(() => {
@@ -100,8 +100,8 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
     const futureMargin = currentMargin + inputs.ebitdaMarginImprovement;
     const futureEBITDA = (futureRevenue * futureMargin) / 100;
 
-    // Exit valuation
-    const exitVal = futureEBITDA * inputs.exitMultiple;
+    // Exit valuation (EV/Revenue for football clubs)
+    const exitVal = futureRevenue * inputs.exitMultiple;
     const exitEquityVal = exitVal - currentDebt;
 
     // Investment calculations
@@ -389,21 +389,22 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
 
               <div>
                 <div className="flex justify-between mb-2">
-                  <Label>Exit Multiple (EV/EBITDA)</Label>
+                  <Label>Exit Multiple (EV/Revenue)</Label>
                   <span className="text-sm font-semibold">{inputs.exitMultiple.toFixed(1)}x</span>
                 </div>
                 <Slider
                   value={[inputs.exitMultiple]}
                   onValueChange={([value]) => updateInput("exitMultiple", value)}
-                  min={5}
-                  max={20}
-                  step={0.5}
+                  min={1}
+                  max={4}
+                  step={0.1}
                   className="mb-1"
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>5.0x</span>
-                  <span>20.0x</span>
+                  <span>1.0x</span>
+                  <span>4.0x</span>
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">Football clubs typically trade at 1.5-3.0x revenue.</p>
               </div>
             </CardContent>
           </Card>
