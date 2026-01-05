@@ -68,7 +68,12 @@
 - [x] Verify IRR, MOIC, Exit Value, and Total Return calculations update in real-time
 
 ## Critical Fixes Required
-- [ ] Fix slider interactions - calculations must update in real-time when sliders move
+- [x] Fix slider interactions - calculations update correctly (verified working)
 - [ ] Fix scenario saving - save button must save to database and show success message
-- [x] Fix investment amount display - showing €0.0M instead of calculated value
+- [x] Fix investment amount display - now correctly shows €75.0M
 - [ ] Test end-to-end: create scenario, adjust sliders, save, verify saved scenarios appear
+
+## User-Reported Issues (New)
+- [x] Fix exit multiple scenario analysis calculations - now uses slider value correctly
+- [x] Verify exit multiple updates when entry valuation or EBITDA changes
+- [x] Test that exit value calculation uses correct exit multiple

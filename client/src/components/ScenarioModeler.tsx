@@ -27,7 +27,6 @@ interface ScenarioInputs {
   name: string;
   entryValuation: number;
   stakePercentage: number;
-  investmentAmount: number;
   debtPercentage: number;
   revenueGrowthRate: number;
   ebitdaMarginImprovement: number;
@@ -52,12 +51,11 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
     name: "Base Case",
     entryValuation: deal.currentValuation ? parseFloat(deal.currentValuation) : 500,
     stakePercentage: 15,
-    investmentAmount: 0,
     debtPercentage: 0,
     revenueGrowthRate: 5,
     ebitdaMarginImprovement: 0,
     exitYear: 5,
-    exitMultiple: 0,
+    exitMultiple: deal.ebitda ? (deal.currentValuation ? parseFloat(deal.currentValuation) / parseFloat(deal.ebitda) : 11.1) : 11.1,
   });
 
   // Calculate derived values using useMemo to avoid circular dependencies
@@ -86,7 +84,7 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
     const futureEBITDA = (futureRevenue * futureMargin) / 100;
     
     // Exit valuation
-    const exitVal = futureEBITDA * exitMultiple;
+    const exitVal = futureEBITDA * inputs.exitMultiple;
     const currentDebt = deal.debt ? parseFloat(deal.debt) : 0;
     const exitEquityVal = exitVal - currentDebt;
     
@@ -137,7 +135,7 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
       entryValuation: inputs.entryValuation.toString(),
       entryMultiple: inputs.exitMultiple.toFixed(1),
       stakePercentage: inputs.stakePercentage.toString(),
-      investmentAmount: inputs.investmentAmount.toFixed(1),
+      investmentAmount: investmentAmount.toFixed(1),
       debtPercentage: inputs.debtPercentage.toString(),
       revenueGrowthRate: inputs.revenueGrowthRate.toString(),
       ebitdaMarginImprovement: inputs.ebitdaMarginImprovement.toString(),
@@ -279,7 +277,7 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
               <div className="pt-3 border-t">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Investment Amount</span>
-                  <span className="text-lg font-bold">{formatCurrency(inputs.investmentAmount)}</span>
+                  <span className="text-lg font-semibold">{formatCurrency(investmentAmount)}</span>
                 </div>
               </div>
 
