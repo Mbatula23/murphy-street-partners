@@ -90,3 +90,8 @@
 - [x] Research accurate Hertha Berlin financial data online (valuation, revenue, EBITDA, debt)
 - [x] Update Hertha Berlin deal in database with correct financials
 - [x] Verify updated data displays correctly in platform
+
+## Exit Multiple Calculation Fix
+- [x] Change default exit multiple from current EV/EBITDA (200x) to realistic 10-12x
+- [ ] Test that all slider changes update calculations dynamically in browser
+- [ ] Verify IRR, MOIC, Exit Value update when any input changes

@@ -55,7 +55,7 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
     revenueGrowthRate: 5,
     ebitdaMarginImprovement: 0,
     exitYear: 5,
-    exitMultiple: deal.ebitda ? (deal.currentValuation ? parseFloat(deal.currentValuation) / parseFloat(deal.ebitda) : 11.1) : 11.1,
+    exitMultiple: 12, // Realistic market multiple for football clubs (8-15x typical range)
   });
 
   // Calculate derived values using useMemo to avoid circular dependencies
