@@ -77,3 +77,11 @@
 - [x] Fix exit multiple scenario analysis calculations - now uses slider value correctly
 - [x] Verify exit multiple updates when entry valuation or EBITDA changes
 - [x] Test that exit value calculation uses correct exit multiple
+
+## User-Reported Issues (Latest)
+- [ ] Sliders not dynamically updating calculations - user tested and numbers don't change when moving sliders
+- [ ] Verify Entry Valuation slider updates IRR/MOIC when moved
+- [ ] Verify Stake Percentage slider updates Investment Amount and returns
+- [ ] Verify Exit Multiple slider updates Exit Value and returns
+- [ ] Verify Revenue Growth slider updates future financials
+- [ ] Test all slider interactions produce immediate visual feedback

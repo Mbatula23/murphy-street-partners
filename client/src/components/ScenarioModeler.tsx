@@ -63,13 +63,6 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
     return (inputs.entryValuation * inputs.stakePercentage) / 100;
   }, [inputs.entryValuation, inputs.stakePercentage]);
 
-  const exitMultiple = useMemo(() => {
-    if (deal.ebitda) {
-      return inputs.entryValuation / parseFloat(deal.ebitda);
-    }
-    return inputs.exitMultiple;
-  }, [inputs.entryValuation, deal.ebitda, inputs.exitMultiple]);
-
   // Calculate scenario results
   const results = useMemo<ScenarioResults>(() => {
     console.log('📊 Calculating scenario with inputs:', inputs);
@@ -114,7 +107,7 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
     };
     console.log('✅ Results calculated:', calculatedResults);
     return calculatedResults;
-  }, [inputs, deal, investmentAmount, exitMultiple]);
+  }, [inputs, deal, investmentAmount]);
 
   const createScenario = trpc.scenarios.create.useMutation({
     onSuccess: () => {
@@ -150,7 +143,12 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
 
   const updateInput = (field: keyof ScenarioInputs, value: number) => {
     console.log(`✏️ updateInput called: ${field} = ${value}`);
-    setInputs(prev => ({ ...prev, [field]: value }));
+    console.log('Current inputs before update:', inputs);
+    setInputs(prev => {
+      const newInputs = { ...prev, [field]: value };
+      console.log('New inputs after update:', newInputs);
+      return newInputs;
+    });
   };
 
   const formatCurrency = (value: number) => {
