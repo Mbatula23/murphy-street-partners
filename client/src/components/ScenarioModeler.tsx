@@ -529,6 +529,14 @@ export default function ScenarioModeler({ dealId, deal }: ScenarioModelerProps) 
                           ))}
                         </tr>
                         <tr className="border-b">
+                          <td className="py-2 px-3 text-muted-foreground">Entry Multiple</td>
+                          {scenarios.map((scenario) => (
+                            <td key={scenario.id} className="text-right py-2 px-3 font-medium">
+                              {scenario.entryMultiple ? `${scenario.entryMultiple}x` : "N/A"}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b">
                           <td className="py-2 px-3 text-muted-foreground">Exit Multiple</td>
                           {scenarios.map((scenario) => (
                             <td key={scenario.id} className="text-right py-2 px-3 font-medium">

@@ -2,22 +2,32 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, 
-  TrendingUp, 
-  Users, 
-  Target, 
+import {
+  Plus,
+  TrendingUp,
+  Users,
+  Target,
   Activity,
   ArrowRight,
   Filter
 } from "lucide-react";
 import { Link } from "wouter";
 import { formatDistanceToNow } from "date-fns";
+import { useEffect, useRef } from "react";
 
 export default function Dashboard() {
   const { data: deals, isLoading: dealsLoading } = trpc.deals.list.useQuery();
   const { data: contacts, isLoading: contactsLoading } = trpc.contacts.list.useQuery();
   const { data: activities, isLoading: activitiesLoading } = trpc.activities.list.useQuery();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  const isLoading = dealsLoading || contactsLoading || activitiesLoading;
+
+  useEffect(() => {
+    if (!isLoading && headingRef.current) {
+      headingRef.current.focus();
+    }
+  }, [isLoading]);
 
   const activeDeals = deals?.filter(d => 
     ["warm", "active", "offer_stage", "due_diligence"].includes(d.status)
@@ -49,7 +59,13 @@ export default function Dashboard() {
         <div className="container py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-1">Deal Pipeline</h1>
+              <h1
+                ref={headingRef}
+                className="text-3xl font-bold text-foreground mb-1"
+                tabIndex={-1}
+              >
+                Deal Pipeline
+              </h1>
               <p className="text-muted-foreground">Strategic minority investments across European sports</p>
             </div>
             <div className="flex gap-2">
@@ -136,7 +152,12 @@ export default function Dashboard() {
         </div>
 
         {dealsLoading ? (
-          <div className="text-center py-12">
+          <div
+            className="text-center py-12"
+            role="status"
+            aria-live="polite"
+            aria-busy="true"
+          >
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
             <p className="text-muted-foreground mt-4">Loading deals...</p>
           </div>

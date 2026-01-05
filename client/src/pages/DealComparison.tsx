@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +6,21 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useLocation } from "wouter";
 import { ArrowLeft, TrendingUp } from "lucide-react";
+
+export const isDealToggleKey = (key: string) => key === "Enter" || key === " ";
+
+export const handleDealKeyboardToggle = (
+  event: Pick<React.KeyboardEvent, "key" | "preventDefault">,
+  onToggle: () => void,
+) => {
+  if (isDealToggleKey(event.key)) {
+    event.preventDefault();
+    onToggle();
+    return true;
+  }
+
+  return false;
+};
 
 export default function DealComparison() {
   const [, setLocation] = useLocation();
@@ -53,6 +68,13 @@ export default function DealComparison() {
     ).join(" ");
   };
 
+  const handleDealKeyDown = (
+    event: React.KeyboardEvent<HTMLButtonElement>,
+    dealId: number
+  ) => {
+    handleDealKeyboardToggle(event, () => toggleDeal(dealId));
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container py-8">
@@ -92,14 +114,18 @@ export default function DealComparison() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {deals.map((deal) => (
-                    <div
+                    <button
+                      type="button"
+                      role="checkbox"
+                      aria-checked={selectedDeals.includes(deal.id)}
                       key={deal.id}
-                      className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                      className={`p-4 border rounded-lg text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
                         selectedDeals.includes(deal.id)
                           ? 'border-primary bg-primary/5'
                           : 'border-border hover:border-primary/50'
                       }`}
                       onClick={() => toggleDeal(deal.id)}
+                      onKeyDown={(event) => handleDealKeyDown(event, deal.id)}
                     >
                       <div className="flex items-start gap-3">
                         <Checkbox
@@ -110,10 +136,12 @@ export default function DealComparison() {
                           <h3 className="font-semibold mb-1">{deal.name}</h3>
                           <div className="flex gap-2 mb-2">
                             <Badge className={getStatusBadgeClass(deal.status)}>
+                              <span className="sr-only">Status:</span>
                               {formatStatus(deal.status)}
                             </Badge>
                             {deal.conviction && (
                               <Badge className={getConvictionBadgeClass(deal.conviction)}>
+                                <span className="sr-only">Conviction:</span>
                                 {deal.conviction}
                               </Badge>
                             )}
@@ -123,7 +151,7 @@ export default function DealComparison() {
                           </p>
                         </div>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </CardContent>
@@ -139,134 +167,208 @@ export default function DealComparison() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-3 px-4 font-semibold">Metric</th>
-                          {selectedDealsData.map((deal) => (
-                            <th key={deal.id} className="text-right py-3 px-4 font-semibold">
-                              {deal.name}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr className="border-b bg-muted/30">
-                          <td className="py-2 px-4 font-medium" colSpan={selectedDealsData.length + 1}>
-                            Overview
-                          </td>
-                        </tr>
-                        <tr className="border-b">
-                          <td className="py-2 px-4 text-muted-foreground">League</td>
-                          {selectedDealsData.map((deal) => (
-                            <td key={deal.id} className="text-right py-2 px-4">
-                              {deal.league || 'N/A'}
-                            </td>
-                          ))}
-                        </tr>
-                        <tr className="border-b">
-                          <td className="py-2 px-4 text-muted-foreground">Country</td>
-                          {selectedDealsData.map((deal) => (
-                            <td key={deal.id} className="text-right py-2 px-4">
-                              {deal.country || 'N/A'}
-                            </td>
-                          ))}
-                        </tr>
-                        <tr className="border-b">
-                          <td className="py-2 px-4 text-muted-foreground">Status</td>
-                          {selectedDealsData.map((deal) => (
-                            <td key={deal.id} className="text-right py-2 px-4">
-                              <Badge className={getStatusBadgeClass(deal.status)}>
-                                {formatStatus(deal.status)}
+                  <div className="md:hidden space-y-4">
+                    {selectedDealsData.map((deal) => (
+                      <div key={deal.id} className="rounded-lg border p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <h3 className="text-lg font-semibold">{deal.name}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {deal.league || 'N/A'} • {deal.country || 'N/A'}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end gap-2">
+                            <Badge className={getStatusBadgeClass(deal.status)}>
+                              <span className="sr-only">Status:</span>
+                              {formatStatus(deal.status)}
+                            </Badge>
+                            {deal.conviction ? (
+                              <Badge className={getConvictionBadgeClass(deal.conviction)}>
+                                <span className="sr-only">Conviction:</span>
+                                {deal.conviction}
                               </Badge>
-                            </td>
-                          ))}
-                        </tr>
-                        <tr className="border-b">
-                          <td className="py-2 px-4 text-muted-foreground">Conviction</td>
-                          {selectedDealsData.map((deal) => (
-                            <td key={deal.id} className="text-right py-2 px-4">
-                              {deal.conviction ? (
-                                <Badge className={getConvictionBadgeClass(deal.conviction)}>
-                                  {deal.conviction}
+                            ) : (
+                              <span className="text-sm text-muted-foreground">Conviction: N/A</span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Valuation</p>
+                            <p className="font-semibold">{formatCurrency(deal.currentValuation)}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Revenue</p>
+                            <p>{formatCurrency(deal.revenue)}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">EBITDA</p>
+                            <p>{formatCurrency(deal.ebitda)}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Net Debt</p>
+                            <p>{formatCurrency(deal.debt)}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">EV/EBITDA</p>
+                            <p className="font-semibold">{calculateEVEBITDA(deal.currentValuation, deal.ebitda)}</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Investment Thesis</p>
+                            <p className="text-sm">{deal.investmentThesis || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Key Risks</p>
+                            <p className="text-sm">{deal.keyRisks || 'N/A'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="hidden md:block">
+                    <div className="overflow-x-auto max-h-[70vh]">
+                      <table className="w-full text-sm border-collapse">
+                        <caption className="text-left text-muted-foreground py-3">
+                          Side-by-side comparison of selected deals across key overview, financial, and thesis metrics.
+                        </caption>
+                        <thead className="sticky top-0 bg-background z-10">
+                          <tr className="border-b">
+                            <th scope="col" className="text-left py-3 px-4 font-semibold">Metric</th>
+                            {selectedDealsData.map((deal) => (
+                              <th
+                                scope="col"
+                                key={deal.id}
+                                className="text-right py-3 px-4 font-semibold bg-background"
+                              >
+                                {deal.name}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-b bg-muted/30">
+                            <th scope="row" className="py-2 px-4 font-medium text-left" colSpan={selectedDealsData.length + 1}>
+                              Overview
+                            </th>
+                          </tr>
+                          <tr className="border-b">
+                            <th scope="row" className="py-2 px-4 text-muted-foreground text-left">League</th>
+                            {selectedDealsData.map((deal) => (
+                              <td key={deal.id} className="text-right py-2 px-4">
+                                {deal.league || 'N/A'}
+                              </td>
+                            ))}
+                          </tr>
+                          <tr className="border-b">
+                            <th scope="row" className="py-2 px-4 text-muted-foreground text-left">Country</th>
+                            {selectedDealsData.map((deal) => (
+                              <td key={deal.id} className="text-right py-2 px-4">
+                                {deal.country || 'N/A'}
+                              </td>
+                            ))}
+                          </tr>
+                          <tr className="border-b">
+                            <th scope="row" className="py-2 px-4 text-muted-foreground text-left">Status</th>
+                            {selectedDealsData.map((deal) => (
+                              <td key={deal.id} className="text-right py-2 px-4">
+                                <Badge className={getStatusBadgeClass(deal.status)}>
+                                  <span className="sr-only">Status:</span>
+                                  {formatStatus(deal.status)}
                                 </Badge>
-                              ) : (
-                                'N/A'
-                              )}
-                            </td>
-                          ))}
-                        </tr>
+                              </td>
+                            ))}
+                          </tr>
+                          <tr className="border-b">
+                            <th scope="row" className="py-2 px-4 text-muted-foreground text-left">Conviction</th>
+                            {selectedDealsData.map((deal) => (
+                              <td key={deal.id} className="text-right py-2 px-4">
+                                {deal.conviction ? (
+                                  <Badge className={getConvictionBadgeClass(deal.conviction)}>
+                                    <span className="sr-only">Conviction:</span>
+                                    {deal.conviction}
+                                  </Badge>
+                                ) : (
+                                  'N/A'
+                                )}
+                              </td>
+                            ))}
+                          </tr>
 
-                        <tr className="border-b bg-muted/30">
-                          <td className="py-2 px-4 font-medium" colSpan={selectedDealsData.length + 1}>
-                            Financials
-                          </td>
-                        </tr>
-                        <tr className="border-b">
-                          <td className="py-2 px-4 text-muted-foreground">Valuation</td>
-                          {selectedDealsData.map((deal) => (
-                            <td key={deal.id} className="text-right py-2 px-4 font-semibold">
-                              {formatCurrency(deal.currentValuation)}
-                            </td>
-                          ))}
-                        </tr>
-                        <tr className="border-b">
-                          <td className="py-2 px-4 text-muted-foreground">Revenue</td>
-                          {selectedDealsData.map((deal) => (
-                            <td key={deal.id} className="text-right py-2 px-4">
-                              {formatCurrency(deal.revenue)}
-                            </td>
-                          ))}
-                        </tr>
-                        <tr className="border-b">
-                          <td className="py-2 px-4 text-muted-foreground">EBITDA</td>
-                          {selectedDealsData.map((deal) => (
-                            <td key={deal.id} className="text-right py-2 px-4">
-                              {formatCurrency(deal.ebitda)}
-                            </td>
-                          ))}
-                        </tr>
-                        <tr className="border-b">
-                          <td className="py-2 px-4 text-muted-foreground">Net Debt</td>
-                          {selectedDealsData.map((deal) => (
-                            <td key={deal.id} className="text-right py-2 px-4">
-                              {formatCurrency(deal.debt)}
-                            </td>
-                          ))}
-                        </tr>
-                        <tr className="border-b">
-                          <td className="py-2 px-4 text-muted-foreground">EV/EBITDA</td>
-                          {selectedDealsData.map((deal) => (
-                            <td key={deal.id} className="text-right py-2 px-4 font-semibold">
-                              {calculateEVEBITDA(deal.currentValuation, deal.ebitda)}
-                            </td>
-                          ))}
-                        </tr>
+                          <tr className="border-b bg-muted/30">
+                            <th scope="row" className="py-2 px-4 font-medium text-left" colSpan={selectedDealsData.length + 1}>
+                              Financials
+                            </th>
+                          </tr>
+                          <tr className="border-b">
+                            <th scope="row" className="py-2 px-4 text-muted-foreground text-left">Valuation</th>
+                            {selectedDealsData.map((deal) => (
+                              <td key={deal.id} className="text-right py-2 px-4 font-semibold">
+                                {formatCurrency(deal.currentValuation)}
+                              </td>
+                            ))}
+                          </tr>
+                          <tr className="border-b">
+                            <th scope="row" className="py-2 px-4 text-muted-foreground text-left">Revenue</th>
+                            {selectedDealsData.map((deal) => (
+                              <td key={deal.id} className="text-right py-2 px-4">
+                                {formatCurrency(deal.revenue)}
+                              </td>
+                            ))}
+                          </tr>
+                          <tr className="border-b">
+                            <th scope="row" className="py-2 px-4 text-muted-foreground text-left">EBITDA</th>
+                            {selectedDealsData.map((deal) => (
+                              <td key={deal.id} className="text-right py-2 px-4">
+                                {formatCurrency(deal.ebitda)}
+                              </td>
+                            ))}
+                          </tr>
+                          <tr className="border-b">
+                            <th scope="row" className="py-2 px-4 text-muted-foreground text-left">Net Debt</th>
+                            {selectedDealsData.map((deal) => (
+                              <td key={deal.id} className="text-right py-2 px-4">
+                                {formatCurrency(deal.debt)}
+                              </td>
+                            ))}
+                          </tr>
+                          <tr className="border-b">
+                            <th scope="row" className="py-2 px-4 text-muted-foreground text-left">EV/EBITDA</th>
+                            {selectedDealsData.map((deal) => (
+                              <td key={deal.id} className="text-right py-2 px-4 font-semibold">
+                                {calculateEVEBITDA(deal.currentValuation, deal.ebitda)}
+                              </td>
+                            ))}
+                          </tr>
 
-                        <tr className="border-b bg-muted/30">
-                          <td className="py-2 px-4 font-medium" colSpan={selectedDealsData.length + 1}>
-                            Investment Thesis
-                          </td>
-                        </tr>
-                        <tr className="border-b">
-                          <td className="py-2 px-4 text-muted-foreground align-top">Thesis</td>
-                          {selectedDealsData.map((deal) => (
-                            <td key={deal.id} className="text-right py-2 px-4 text-sm">
-                              {deal.investmentThesis || 'N/A'}
-                            </td>
-                          ))}
-                        </tr>
-                        <tr className="border-b">
-                          <td className="py-2 px-4 text-muted-foreground align-top">Key Risks</td>
-                          {selectedDealsData.map((deal) => (
-                            <td key={deal.id} className="text-right py-2 px-4 text-sm">
-                              {deal.keyRisks || 'N/A'}
-                            </td>
-                          ))}
-                        </tr>
-                      </tbody>
-                    </table>
+                          <tr className="border-b bg-muted/30">
+                            <th scope="row" className="py-2 px-4 font-medium text-left" colSpan={selectedDealsData.length + 1}>
+                              Investment Thesis
+                            </th>
+                          </tr>
+                          <tr className="border-b">
+                            <th scope="row" className="py-2 px-4 text-muted-foreground align-top text-left">Thesis</th>
+                            {selectedDealsData.map((deal) => (
+                              <td key={deal.id} className="text-right py-2 px-4 text-sm">
+                                {deal.investmentThesis || 'N/A'}
+                              </td>
+                            ))}
+                          </tr>
+                          <tr className="border-b">
+                            <th scope="row" className="py-2 px-4 text-muted-foreground align-top text-left">Key Risks</th>
+                            {selectedDealsData.map((deal) => (
+                              <td key={deal.id} className="text-right py-2 px-4 text-sm">
+                                {deal.keyRisks || 'N/A'}
+                              </td>
+                            ))}
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

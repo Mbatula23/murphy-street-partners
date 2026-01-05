@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation, useRoute } from "wouter";
 import { ArrowLeft, Edit, TrendingUp, Users, FileText, Calculator } from "lucide-react";
 import ScenarioModeler from "@/components/ScenarioModeler";
+import { useEffect, useRef } from "react";
 
 export default function DealDetail() {
   const [, params] = useRoute("/deals/:id");
@@ -13,6 +14,13 @@ export default function DealDetail() {
   const dealId = params?.id ? parseInt(params.id) : 0;
 
   const { data: deal, isLoading } = trpc.deals.get.useQuery({ id: dealId });
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    if (!isLoading && deal && headingRef.current) {
+      headingRef.current.focus();
+    }
+  }, [isLoading, deal]);
 
   const getStatusBadgeClass = (status: string) => {
     return `status-${status}`;
@@ -37,7 +45,12 @@ export default function DealDetail() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
+        <div
+          className="text-center"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+        >
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading deal...</p>
         </div>
@@ -72,7 +85,13 @@ export default function DealDetail() {
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold text-foreground">{deal.name}</h1>
+                <h1
+                  ref={headingRef}
+                  className="text-3xl font-bold text-foreground"
+                  tabIndex={-1}
+                >
+                  {deal.name}
+                </h1>
                 <Badge className={`${getStatusBadgeClass(deal.status)}`}>
                   {formatStatus(deal.status)}
                 </Badge>
