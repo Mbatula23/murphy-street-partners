@@ -18,6 +18,7 @@ interface Scenario {
   id: number;
   name: string;
   entryValuation: string;
+  entryMultiple?: string | null;
   stakePercentage: string;
   investmentAmount: string;
   debtPercentage: string | null;
@@ -126,6 +127,7 @@ export function exportDealWithScenarios(deal: Deal, scenarios: Scenario[]) {
       ['IRR', ...scenarios.map(s => `${s.irr || 'N/A'}%`)],
       ['MOIC', ...scenarios.map(s => `${s.moic || 'N/A'}x`)],
       ['Entry Valuation', ...scenarios.map(s => `€${s.entryValuation}M`)],
+      ['Entry Multiple', ...scenarios.map(s => `${s.entryMultiple ?? 'N/A'}x`)],
       ['Stake %', ...scenarios.map(s => `${s.stakePercentage}%`)],
       ['Investment', ...scenarios.map(s => `€${s.investmentAmount}M`)],
       ['Revenue Growth', ...scenarios.map(s => `${s.revenueGrowthRate}%`)],
@@ -203,6 +205,7 @@ export function exportScenarioComparison(dealName: string, scenarios: Scenario[]
       ['MOIC', ...scenarios.map(s => `${s.moic || 'N/A'}x`)],
       ['Cash-on-Cash', ...scenarios.map(s => `${s.cashOnCashReturn}%`)],
       ['Entry Valuation', ...scenarios.map(s => `€${s.entryValuation}M`)],
+      ['Entry Multiple', ...scenarios.map(s => `${s.entryMultiple ?? 'N/A'}x`)],
       ['Stake %', ...scenarios.map(s => `${s.stakePercentage}%`)],
       ['Investment Amount', ...scenarios.map(s => `€${s.investmentAmount}M`)],
       ['Debt Financing', ...scenarios.map(s => `${s.debtPercentage}%`)],
