@@ -93,5 +93,5 @@
 
 ## Exit Multiple Calculation Fix
 - [x] Change default exit multiple from current EV/EBITDA (200x) to realistic 10-12x
-- [ ] Test that all slider changes update calculations dynamically in browser
-- [ ] Verify IRR, MOIC, Exit Value update when any input changes
+- [x] Test that all slider changes update calculations dynamically in browser
+- [x] Verify IRR, MOIC, Exit Value update when any input changes
