@@ -85,3 +85,8 @@
 - [ ] Verify Exit Multiple slider updates Exit Value and returns
 - [ ] Verify Revenue Growth slider updates future financials
 - [ ] Test all slider interactions produce immediate visual feedback
+
+## New User Request - Hertha Berlin Data
+- [x] Research accurate Hertha Berlin financial data online (valuation, revenue, EBITDA, debt)
+- [x] Update Hertha Berlin deal in database with correct financials
+- [x] Verify updated data displays correctly in platform

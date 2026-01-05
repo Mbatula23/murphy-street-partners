@@ -1,0 +1,18 @@
+{
+  "query": "SELECT name, currentValuation, revenue, ebitda, debt, league FROM deals WHERE name LIKE '%Hertha%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2ZuSPpW8NoPyuNj.root --database VhHGPvgsvoLHTKTLTXFkJq --execute SELECT name, currentValuation, revenue, ebitda, debt, league FROM deals WHERE name LIKE '%Hertha%';",
+  "rows": [
+    {
+      "name": "Hertha Berlin",
+      "currentValuation": "200",
+      "revenue": "98.4",
+      "ebitda": "1",
+      "debt": "56.8",
+      "league": "2.Bundesliga"
+    }
+  ],
+  "messages": [],
+  "stdout": "name\tcurrentValuation\trevenue\tebitda\tdebt\tleague\nHertha Berlin\t200\t98.4\t1\t56.8\t2.Bundesliga\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

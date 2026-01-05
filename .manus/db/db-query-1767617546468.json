@@ -1,0 +1,38 @@
+{
+  "query": "SELECT * FROM deals WHERE name LIKE '%Hertha%' LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2ZuSPpW8NoPyuNj.root --database VhHGPvgsvoLHTKTLTXFkJq --execute SELECT * FROM deals WHERE name LIKE '%Hertha%' LIMIT 5;",
+  "rows": [
+    {
+      "id": "1",
+      "userId": "1",
+      "name": "Hertha Berlin",
+      "league": "Bundesliga",
+      "country": "Germany",
+      "sport": "football",
+      "status": "monitoring",
+      "conviction": "high",
+      "priority": "3",
+      "currentValuation": "500",
+      "revenue": "150",
+      "ebitda": "45",
+      "debt": "200",
+      "currentOwner": "Lars Windhorst",
+      "ownershipStructure": "Private ownership with multiple stakeholders",
+      "minorityStakeAvailable": "0",
+      "targetStakePercentage": "20",
+      "mediaRightsExpiry": "NULL",
+      "lastContactDate": "NULL",
+      "nextFollowUpDate": "NULL",
+      "investmentThesis": "Undervalued Bundesliga club with strong brand and stadium assets. Significant upside through improved commercial operations and international expansion.",
+      "keyRisks": "Relegation risk, ownership disputes, Berlin market competition",
+      "valueCreationOpportunities": "Commercial revenue growth, stadium monetization, youth academy development",
+      "privateNotes": "Initial conversations through banking advisor",
+      "createdAt": "2026-01-03 18:26:54",
+      "updatedAt": "2026-01-03 18:26:54"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tname\tleague\tcountry\tsport\tstatus\tconviction\tpriority\tcurrentValuation\trevenue\tebitda\tdebt\tcurrentOwner\townershipStructure\tminorityStakeAvailable\ttargetStakePercentage\tmediaRightsExpiry\tlastContactDate\tnextFollowUpDate\tinvestmentThesis\tkeyRisks\tvalueCreationOpportunities\tprivateNotes\tcreatedAt\tupdatedAt\n1\t1\tHertha Berlin\tBundesliga\tGermany\tfootball\tmonitoring\thigh\t3\t500\t150\t45\t200\tLars Windhorst\tPrivate ownership with multiple stakeholders\t0\t20\tNULL\tNULL\tNULL\tUndervalued Bundesliga club with strong brand and stadium assets. Significant upside through improved commercial operations and international expansion.\tRelegation risk, ownership disputes, Berlin market competition\tCommercial revenue growth, stadium monetization, youth academy development\tInitial conversations through banking advisor\t2026-01-03 18:26:54\t2026-01-03 18:26:54\n",
+  "stderr": "",
+  "execution_time_ms": 116
+}
