@@ -22,7 +22,7 @@ import {
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
 import { LayoutDashboard, LogOut, PanelLeft, Users } from "lucide-react";
-import { CSSProperties, useEffect, useRef, useState } from "react";
+import { CSSProperties, KeyboardEvent, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
@@ -36,6 +36,19 @@ const SIDEBAR_WIDTH_KEY = "sidebar-width";
 const DEFAULT_WIDTH = 280;
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 480;
+const RESIZE_STEP = 10;
+
+export const adjustSidebarWidthForKey = (currentWidth: number, key: string) => {
+  if (key === "ArrowLeft") {
+    return Math.max(MIN_WIDTH, currentWidth - RESIZE_STEP);
+  }
+
+  if (key === "ArrowRight") {
+    return Math.min(MAX_WIDTH, currentWidth + RESIZE_STEP);
+  }
+
+  return currentWidth;
+};
 
 export default function DashboardLayout({
   children,
@@ -90,7 +103,10 @@ export default function DashboardLayout({
         } as CSSProperties
       }
     >
-      <DashboardLayoutContent setSidebarWidth={setSidebarWidth}>
+      <DashboardLayoutContent
+        sidebarWidth={sidebarWidth}
+        setSidebarWidth={setSidebarWidth}
+      >
         {children}
       </DashboardLayoutContent>
     </SidebarProvider>
@@ -99,11 +115,13 @@ export default function DashboardLayout({
 
 type DashboardLayoutContentProps = {
   children: React.ReactNode;
+  sidebarWidth: number;
   setSidebarWidth: (width: number) => void;
 };
 
 function DashboardLayoutContent({
   children,
+  sidebarWidth,
   setSidebarWidth,
 }: DashboardLayoutContentProps) {
   const { user, logout } = useAuth();
@@ -150,6 +168,16 @@ function DashboardLayoutContent({
       document.body.style.userSelect = "";
     };
   }, [isResizing, setSidebarWidth]);
+
+  const handleKeyboardResize = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (isCollapsed) return;
+
+    const nextWidth = adjustSidebarWidthForKey(sidebarWidth, event.key);
+    if (nextWidth !== sidebarWidth) {
+      event.preventDefault();
+      setSidebarWidth(nextWidth);
+    }
+  };
 
   return (
     <>
@@ -233,13 +261,25 @@ function DashboardLayoutContent({
           </SidebarFooter>
         </Sidebar>
         <div
-          className={`absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary/20 transition-colors ${isCollapsed ? "hidden" : ""}`}
+          className={`absolute top-0 right-0 w-2 h-full cursor-col-resize hover:bg-primary/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+            isCollapsed ? "hidden" : ""
+          }`}
+          role="separator"
+          aria-orientation="vertical"
+          aria-valuemin={MIN_WIDTH}
+          aria-valuemax={MAX_WIDTH}
+          aria-valuenow={sidebarWidth}
+          aria-label="Resize sidebar"
+          tabIndex={isCollapsed ? -1 : 0}
+          onKeyDown={handleKeyboardResize}
           onMouseDown={() => {
             if (isCollapsed) return;
             setIsResizing(true);
           }}
           style={{ zIndex: 50 }}
-        />
+        >
+          <span className="sr-only">Resize sidebar</span>
+        </div>
       </div>
 
       <SidebarInset>
